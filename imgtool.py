@@ -66,27 +66,25 @@ def clear_kitty_images():
 def preview_ascii(stdscr, img, max_w=80, max_h=24):
     # ANSI true color через sys.stdout, минуя curses
     pil = Image.fromarray(img).convert("RGB")
-    # 2 пикселя по вертикали на 1 символ: используем "▀" (верхний полублок)
+    # 2 пикселя по вертикали на 1 символ: "▀" (верхний полублок)
     pil.thumbnail((max_w, max_h * 2), Image.LANCZOS)
     small = np.array(pil)
     h, w = small.shape[:2]
 
-    curses.endwin()   # временно выйти из curses, чтоб ANSI-коды прошли
-    out = ["\033[2J\033[H"]   # clear + home
+    curses.endwin()
+    out = ["\033[2J\033[H"]
     for y in range(0, h - 1, 2):
         for x in range(w):
             r1, g1, b1 = small[y, x]
             r2, g2, b2 = small[y + 1, x]
-            # верхний пиксель — цвет символа, нижний — цвет фона
             out.append(f"\033[38;2;{r1};{g1};{b1}m\033[48;2;{r2};{g2};{b2}m▀")
         out.append("\033[0m\n")
     out.append("\033[0m")
     sys.stdout.write("".join(out))
     sys.stdout.flush()
 
-    sys.stdin.read(1)   # ждать нажатия
+    sys.stdin.read(1)
 
-    # вернуться в curses
     stdscr.clear()
     stdscr.refresh()
     curses.doupdate()
@@ -111,7 +109,7 @@ def show_message(stdscr, y, msg, attr=curses.A_BOLD):
     max_y, max_x = stdscr.getmaxyx()
     y = min(y, max_y - 1)
     stdscr.move(y, 0)
-    stdscr.clrtoeol()   # без этого останется хвост от прошлого сообщения
+    stdscr.clrtoeol()
     stdscr.addstr(y, 2, msg[:max_x - 4], attr)
     stdscr.refresh()
     stdscr.getch()
@@ -146,7 +144,7 @@ def ask_save_on_exit(stdscr, image, image_path):
         show_message(stdscr, 2, f"Error: {e}")
 
 
-def main(stdscr):
+def run(stdscr):
     curses.curs_set(0)
     stdscr.keypad(True)
     stdscr.clear()
@@ -302,5 +300,9 @@ def main(stdscr):
             break
 
 
+def main():
+    curses.wrapper(run)
+
+
 if __name__ == "__main__":
-    curses.wrapper(main)
+    main()
